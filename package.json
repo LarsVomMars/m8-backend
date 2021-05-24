@@ -1,0 +1,36 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "main": "dist/app.js",
+  "license": "MIT",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "dotenv": "^9.0.2",
+    "express": "^4.17.1",
+    "mongodb": "^3.6.7",
+    "swagger-jsdoc": "6.1.0",
+    "swagger-ui-express": "^4.1.6"
+  },
+  "devDependencies": {
+    "@types/body-parser": "^1.19.0",
+    "@types/cors": "^2.8.10",
+    "@types/dotenv": "^8.2.0",
+    "@types/express": "^4.17.11",
+    "@types/mongodb": "^3.6.13",
+    "@types/node": "^15.3.0",
+    "@types/swagger-jsdoc": "^6.0.0",
+    "@types/swagger-ui-express": "^4.1.2",
+    "eslint": "^7.26.0",
+    "nodemon": "^2.0.7",
+    "prettier": "^2.3.0",
+    "typescript": "^4.2.4"
+  },
+  "scripts": {
+    "build": "tsc --pretty",
+    "start": "node dist/app.js",
+    "all": "yarn build && yarn start",
+    "watch:js": "nodemon dist/app.js",
+    "watch:ts": "tsc --pretty -w"
+  }
+}
