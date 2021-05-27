@@ -1,10 +1,9 @@
 import { Router } from "express";
+import { MongoClient } from "mongodb";
 import connect from "../db";
-import { MongoClient, ObjectId } from "mongodb";
+import { userTable } from "../util";
 
 const user = Router();
-
-const userTable = (client: MongoClient) => client.db("mate").collection("users");
 
 /**
  * @swagger
@@ -35,20 +34,47 @@ const userTable = (client: MongoClient) => client.db("mate").collection("users")
  *               format: float
  *             permission:
  *               type: integer
+ *             admin_qr:
+ *               type: string
+ *             admin_pin:
+ *               type: string
  *     responses:
  *       "200":
  *         description: Success
+ *       "400":
+ *         description: Wrong parameters
+ *       "401":
+ *         description: Wrong authentication
  */
 user.post("/", async (req, res) => {
-    const { qr, pin, balance, permission } = req.body;
-    if (!qr || !pin || balance === null || permission === null)
+    console.log(Object.values(Permissions));
+    const { qr, pin, balance, permission, admin_qr, admin_pin } = req.body;
+    if (
+        !qr ||
+        !pin ||
+        balance === undefined ||
+        balance < 0 ||
+        permission === undefined ||
+        !Object.values(Permissions).includes(permission) ||
+        !admin_qr ||
+        !admin_pin
+    )
         return res.status(400).json({ success: false, error: "Bad request" });
-
-    const client = await connect();
-    const tbl = userTable(client);
-    await tbl.insertOne({ qr, pin, balance, permission });
-    client.close();
-    res.json({ success: true });
+    let client;
+    try {
+        client = await connect();
+        const tbl = userTable(client);
+        const admin: IUser = await tbl.findOne({ qr: admin_qr, pin: admin_pin });
+        if (!admin || admin.permission === 0)
+            return res.status(401).json({ success: false, error: "Unauthorized" });
+        await tbl.insertOne({ qr, pin, balance, permission });
+        return res.json({ success: true });
+    } catch (e) {
+        console.error(e);
+        return res.status(500).json({ success: false, error: "Welp!" });
+    } finally {
+        client?.close();
+    }
 });
 
 /**
@@ -82,12 +108,19 @@ user.post("/", async (req, res) => {
  */
 user.get("/:qr", async (req, res) => {
     const { qr } = req.params;
-    const client = await connect();
-    const tbl = userTable(client);
-    const resp = await tbl.find({ qr }).toArray();
-    client.close();
-    if (resp.length === 0) return res.status(400).json({ success: false });
-    res.json({ success: true, balance: resp[0].balance });
+    let client;
+    try {
+        client = await connect();
+        const tbl = userTable(client);
+        const resp: IUser = await tbl.findOne({ qr });
+        if (!resp) return res.status(400).json({ success: false });
+        return res.json({ success: true, balance: resp.balance });
+    } catch (e) {
+        console.error(e);
+        return res.status(500).json({ success: false, error: "Welp!" });
+    } finally {
+        client?.close();
+    }
 });
 
 export default user;

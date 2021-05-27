@@ -3,6 +3,8 @@ import connect from "./db";
 
 import jsdoc from "swagger-jsdoc";
 import ui from "swagger-ui-express";
+import type { Collection, MongoClient } from "mongodb";
+import type { IUser } from "./api/user";
 
 export async function getKeys(): Promise<string[]> {
     const client = await connect();
@@ -63,3 +65,10 @@ export function initSwaggerDoc(app: Application) {
     app.get("/", (req, res) => res.redirect("/doc"));
     app.use("/doc", ui.serve, ui.setup(spec, { explorer: true }));
 }
+
+export const userTable = (client: MongoClient): Collection =>
+    client.db("mate").collection("users");
+export const productsTable = (client: MongoClient): Collection =>
+    client.db("mate").collection("products");
+export const getUserByQR = (tbl: Collection, qr: string, pin: string): Promise<IUser> =>
+    tbl.findOne({ qr, pin });

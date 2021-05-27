@@ -2,6 +2,7 @@ import { Router } from "express";
 import { ObjectId } from "mongodb";
 import connect from "../db";
 import { Permissions } from "./user";
+import { productsTable } from "../util";
 
 const products = Router();
 
@@ -69,8 +70,7 @@ const products = Router();
  */
 products.get("/", async (_req, res) => {
     const client = await connect();
-    const db = client.db("mate");
-    const tbl = db.collection("products");
+    const tbl = productsTable(client);
     const products = await tbl.find().toArray();
     client.close();
     res.json({ succes: true, products });
@@ -110,8 +110,7 @@ products.post("/", async (req, res) => {
     )
         return res.status(400).json({ succes: false, error: "Bad Request" });
     const client = await connect();
-    const db = client.db("mate");
-    const tbl = db.collection("products");
+    const tbl = productsTable(client);
     await tbl.insertOne({ name, price, amount, bottles_per_crate, permission });
     client.close();
     res.json({ success: true });
@@ -151,8 +150,7 @@ products.put("/", async (req, res) => {
     )
         return res.status(400).json({ succes: false, error: "Bad Request" });
     const client = await connect();
-    const db = client.db("mate");
-    const tbl = db.collection("products");
+    const tbl = productsTable(client);
     await tbl.replaceOne(
         { _id: new ObjectId(id) },
         { name, price, amount, bottles_per_crate, permission }
@@ -191,8 +189,7 @@ products.delete("/", async (req, res) => {
     const { id } = req.body;
     if (!id) return res.status(400).json({ success: false, error: "Bad Request" });
     const client = await connect();
-    const db = client.db("mate");
-    const tbl = db.collection("products");
+    const tbl = productsTable(client);
     await tbl.deleteOne({ _id: new ObjectId(id) });
     client.close();
     res.json({ success: true });
@@ -204,7 +201,7 @@ export interface IProduct {
     _id: string;
     name: string;
     price: number;
-    amount: number,
+    amount: number;
     bottles_per_crate: number;
     permission: Permissions;
 }
