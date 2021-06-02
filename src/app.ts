@@ -2,7 +2,6 @@ import { config as dotenvConfig } from "dotenv";
 import { init as initDB } from "./db";
 import * as util from "./util";
 dotenvConfig();
-initDB().catch(console.error);
 
 import express from "express";
 import api from "./api";
@@ -15,12 +14,12 @@ const app = express();
 let server: Server;
 
 async function main() {
-    const keys = await util.getKeys();
+    await initDB();
 
     app.use(express.urlencoded({ extended: true }));
     app.use(express.json());
     app.use(cors());
-
+    
     util.initSwaggerDoc(app);
     // app.use("/api", util.authMiddleware(keys), api);
     app.use("/api", api);

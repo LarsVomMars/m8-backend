@@ -1,30 +1,20 @@
 import type { Request, Response, NextFunction, Application } from "express";
-import connect from "./db";
 
 import jsdoc from "swagger-jsdoc";
 import ui from "swagger-ui-express";
-import type { Collection, MongoClient } from "mongodb";
-import type { IUser } from "./api/user";
+import { ApiKeysModel } from "./db";
+import type { ApiPermissions } from "./db";
 
-export async function getKeys(): Promise<string[]> {
-    const client = await connect();
-    if (!client) return [];
-    const db = client.db("mate");
-    if (!db) return [];
-    const tbl = db.collection("api_keys");
-    const keys = (await tbl.find().toArray()).map((d) => d.key);
-    client.close();
-    return keys;
-}
-
-export function authMiddleware(keys: string[]) {
-    return (req: Request, res: Response, next: NextFunction) => {
+export function authMiddleware(permission: ApiPermissions) {
+    return async (req: Request, res: Response, next: NextFunction) => {
         if (req.headers.authorization) {
             const [headerKey, headerValue] = req.headers.authorization.split(" ");
             if (headerKey !== "Bearer")
                 return res.status(400).json({ success: false, message: "Bad Request" });
-            if (!keys.includes(headerValue))
+            const key = await ApiKeysModel.findOne({key: headerValue}).exec();
+            if (!key || key.permission < permission)
                 return res.status(401).json({ success: false, message: "Unauthorized" });
+            req.apiKey = key;
             return next();
         }
         return res.status(400).json({ success: false, message: "Bad Request" });
@@ -65,10 +55,3 @@ export function initSwaggerDoc(app: Application) {
     app.get("/", (req, res) => res.redirect("/doc"));
     app.use("/doc", ui.serve, ui.setup(spec, { explorer: true }));
 }
-
-export const userTable = (client: MongoClient): Collection =>
-    client.db("mate").collection("users");
-export const productsTable = (client: MongoClient): Collection =>
-    client.db("mate").collection("products");
-export const getUserByQR = (tbl: Collection, qr: string, pin: string): Promise<IUser> =>
-    tbl.findOne({ qr, pin });

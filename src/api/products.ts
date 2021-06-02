@@ -1,8 +1,7 @@
 import { Router } from "express";
 import { ObjectId } from "mongodb";
-import connect from "../db";
+import { ProductModel } from "../db";
 import { Permissions } from "./user";
-import { productsTable } from "../util";
 
 const products = Router();
 
@@ -69,10 +68,7 @@ const products = Router();
  *                 $ref: "#/definitions/IProduct"
  */
 products.get("/", async (_req, res) => {
-    const client = await connect();
-    const tbl = productsTable(client);
-    const products = await tbl.find().toArray();
-    client.close();
+    const products = await ProductModel.find().exec();
     res.json({ succes: true, products });
 });
 
@@ -106,14 +102,25 @@ products.post("/", async (req, res) => {
         price === null ||
         amount === null ||
         bottles_per_crate === null ||
-        permission === null
+        permission === null ||
+        !Object.values(Permissions).includes(permission)
     )
         return res.status(400).json({ succes: false, error: "Bad Request" });
-    const client = await connect();
-    const tbl = productsTable(client);
-    await tbl.insertOne({ name, price, amount, bottles_per_crate, permission });
-    client.close();
-    res.json({ success: true });
+
+    try {
+        const product = new ProductModel({
+            name,
+            price,
+            amount,
+            bottles_per_crate,
+            permission,
+        });
+        product.save();
+        res.json({ success: true });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ success: false });
+    }
 });
 
 /**
@@ -146,17 +153,23 @@ products.put("/", async (req, res) => {
         price === null ||
         amount === null ||
         bottles_per_crate === null ||
-        permission === null
+        permission === null ||
+        !Object.values(Permissions).includes(permission)
     )
         return res.status(400).json({ succes: false, error: "Bad Request" });
-    const client = await connect();
-    const tbl = productsTable(client);
-    await tbl.replaceOne(
-        { _id: new ObjectId(id) },
-        { name, price, amount, bottles_per_crate, permission }
-    );
-    client.close();
-    res.json({ success: true });
+    try {
+        await ProductModel.findByIdAndUpdate(id, {
+            name,
+            price,
+            amount,
+            bottles_per_crate,
+            permission,
+        });
+        res.json({ success: true });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ success: false });
+    }
 });
 
 /**
@@ -188,11 +201,13 @@ products.put("/", async (req, res) => {
 products.delete("/", async (req, res) => {
     const { id } = req.body;
     if (!id) return res.status(400).json({ success: false, error: "Bad Request" });
-    const client = await connect();
-    const tbl = productsTable(client);
-    await tbl.deleteOne({ _id: new ObjectId(id) });
-    client.close();
-    res.json({ success: true });
+    try {
+        await ProductModel.findByIdAndDelete(id);
+        res.json({ success: true });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ success: false });
+    }
 });
 
 export default products;

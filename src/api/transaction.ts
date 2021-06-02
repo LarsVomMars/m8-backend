@@ -1,9 +1,6 @@
 import { Router } from "express";
 import { ObjectId } from "mongodb";
-import connect from "../db";
-import type { IProduct } from "./products";
-import type { IUser } from "./user";
-import { userTable, productsTable, getUserByQR } from "../util";
+import { UserModel, ProductModel } from "../db";
 
 const transaction = Router();
 
@@ -13,15 +10,10 @@ transaction.post("/buy", async (req, res) => {
     if (!pid || !user_qr || !user_pin || !admin_qr || !admin_pin || !amount)
         return res.status(400).json({ success: false, error: "Bad request" });
 
-    let client;
     try {
-        client = await connect();
-        const ptbl = productsTable(client);
-        const utbl = userTable(client);
-
-        const product: IProduct = await ptbl.findOne({ _id: new ObjectId(pid) });
-        const user = await getUserByQR(utbl, user_qr, user_pin); // TODO: 401 action
-        const admin = await getUserByQR(utbl, admin_qr, admin_pin);
+        const product = await ProductModel.findById(pid).exec();
+        const user = await UserModel.findOne({ qr: user_qr, pin: user_pin }).exec();
+        const admin = await UserModel.findOne({ qr: admin_qr, pin: admin_pin }).exec();
 
         if (!product || !user || !admin)
             return res.status(400).json({ success: false, error: "Bad request" });
@@ -36,13 +28,11 @@ transaction.post("/buy", async (req, res) => {
 
         const balance = user.balance - price;
 
-        utbl.replaceOne({ _id: new ObjectId(user._id) }, { balance });
+        await UserModel.findByIdAndUpdate(user._id, { balance }).exec();
         return res.json({ success: true, balance });
     } catch (e) {
         console.error(e);
         return res.status(500).json({ success: false, error: "Welp!" });
-    } finally {
-        client?.close();
     }
 });
 
@@ -51,24 +41,19 @@ transaction.put("/deposit", async (req, res) => {
     if (!user_qr || !user_pin || !admin_qr || !admin_pin || !balance || balance < 0)
         return res.status(400).json({ success: false, error: "Bad request" });
 
-    let client;
     try {
-        client = await connect();
-        const tbl = userTable(client);
-        const user = await getUserByQR(tbl, user_qr, user_pin);
-        const admin = await getUserByQR(tbl, admin_qr, admin_pin);
+        const user = await UserModel.findOne({ qr: user_qr, pin: user_pin }).exec();
+        const admin = await UserModel.findOne({ qr: admin_qr, pin: admin_pin }).exec();
 
         if (!user || !admin)
             return res.status(401).json({ success: false, error: "Unauthorized" });
 
         const nb = user.balance + balance;
-        tbl.replaceOne({ _id: new ObjectId(user._id) }, { balance: nb });
+        await UserModel.findByIdAndUpdate(user._id, { balance: nb }).exec();
         return res.json({ success: true, balance: nb });
     } catch (e) {
         console.error(e);
         return res.status(500).json({ success: false, error: "Welp!" });
-    } finally {
-        client?.close();
     }
 });
 
@@ -79,21 +64,17 @@ transaction.put("/clear", async (req, res) => {
 
     let client;
     try {
-        client = await connect();
-        const tbl = userTable(client);
-        const user = await getUserByQR(tbl, user_qr, user_pin);
-        const admin = await getUserByQR(tbl, admin_qr, admin_pin);
+        const user = await UserModel.findOne({ qr: user_qr, pin: user_pin }).exec();
+        const admin = await UserModel.findOne({ qr: admin_qr, pin: admin_pin }).exec();
 
         if (!user || !admin)
             return res.status(401).json({ success: false, error: "Unauthorized" });
 
-        tbl.replaceOne({ _id: new ObjectId(user._id) }, { balance: 0 });
+        await UserModel.findByIdAndUpdate(user._id, { balance: 0 }).exec();
         return res.json({ success: true });
     } catch (e) {
         console.error(e);
         return res.status(500).json({ success: false, error: "Welp!" });
-    } finally {
-        client?.close();
     }
 });
 

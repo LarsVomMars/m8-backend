@@ -6,9 +6,9 @@
   "dependencies": {
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",
-    "dotenv": "^9.0.2",
+    "dotenv": "^10.0.0",
     "express": "^4.17.1",
-    "mongodb": "^3.6.7",
+    "mongoose": "^5.12.12",
     "swagger-jsdoc": "6.1.0",
     "swagger-ui-express": "^4.1.6"
   },
@@ -16,15 +16,15 @@
     "@types/body-parser": "^1.19.0",
     "@types/cors": "^2.8.10",
     "@types/dotenv": "^8.2.0",
-    "@types/express": "^4.17.11",
-    "@types/mongodb": "^3.6.13",
-    "@types/node": "^15.3.0",
+    "@types/express": "^4.17.12",
+    "@types/mongoose": "^5.11.52",
+    "@types/node": "^15.9.0",
     "@types/swagger-jsdoc": "^6.0.0",
     "@types/swagger-ui-express": "^4.1.2",
-    "eslint": "^7.26.0",
+    "eslint": "^7.27.0",
     "nodemon": "^2.0.7",
     "prettier": "^2.3.0",
-    "typescript": "^4.2.4"
+    "typescript": "^4.3.2"
   },
   "scripts": {
     "build": "tsc --pretty",

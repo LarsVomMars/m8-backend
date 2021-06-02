@@ -1,7 +1,5 @@
 import { Router } from "express";
-import { MongoClient } from "mongodb";
-import connect from "../db";
-import { userTable } from "../util";
+import { UserModel } from "../db";
 
 const user = Router();
 
@@ -47,7 +45,6 @@ const user = Router();
  *         description: Wrong authentication
  */
 user.post("/", async (req, res) => {
-    console.log(Object.values(Permissions));
     const { qr, pin, balance, permission, admin_qr, admin_pin } = req.body;
     if (
         !qr ||
@@ -60,20 +57,17 @@ user.post("/", async (req, res) => {
         !admin_pin
     )
         return res.status(400).json({ success: false, error: "Bad request" });
-    let client;
     try {
-        client = await connect();
-        const tbl = userTable(client);
-        const admin: IUser = await tbl.findOne({ qr: admin_qr, pin: admin_pin });
+        const admin = await UserModel.findOne({ qr: admin_qr, pin: admin_pin }).exec();
         if (!admin || admin.permission === 0)
             return res.status(401).json({ success: false, error: "Unauthorized" });
-        await tbl.insertOne({ qr, pin, balance, permission });
+
+        const user = new UserModel({ qr, pin, balance, permission });
+        user.save();
         return res.json({ success: true });
     } catch (e) {
         console.error(e);
         return res.status(500).json({ success: false, error: "Welp!" });
-    } finally {
-        client?.close();
     }
 });
 
@@ -108,18 +102,14 @@ user.post("/", async (req, res) => {
  */
 user.get("/:qr", async (req, res) => {
     const { qr } = req.params;
-    let client;
+    if (!qr) return res.status(400).json({ success: false, error: "Bad request" });
     try {
-        client = await connect();
-        const tbl = userTable(client);
-        const resp: IUser = await tbl.findOne({ qr });
-        if (!resp) return res.status(400).json({ success: false });
-        return res.json({ success: true, balance: resp.balance });
+        const user = await UserModel.findOne({ qr }).exec();
+        if (!user) return res.status(400).json({ success: false, error: "Bad request" });
+        return res.json({ success: true, balance: user.balance });
     } catch (e) {
         console.error(e);
         return res.status(500).json({ success: false, error: "Welp!" });
-    } finally {
-        client?.close();
     }
 });
 
