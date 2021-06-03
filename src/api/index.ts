@@ -11,6 +11,5 @@ const api = Router();
 api.use("/products", products);
 api.use("/user", user);
 api.use("/transaction", transaction);
-api.use("/auth", authMiddleware(ApiPermissions.ADMIN), auth);
 
 export default api;

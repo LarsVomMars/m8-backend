@@ -5,6 +5,7 @@ dotenvConfig();
 
 import express from "express";
 import api from "./api";
+import auth from "./api/auth";
 import { Server } from "http";
 
 import cors from "cors";
@@ -19,10 +20,11 @@ async function main() {
     app.use(express.urlencoded({ extended: true }));
     app.use(express.json());
     app.use(cors());
-    
+
     util.initSwaggerDoc(app);
     // app.use("/api", util.authMiddleware(keys), api);
     app.use("/api", api);
+    app.use("/auth", auth);
 
     server = app.listen(PORT, () => console.log(`Server started at http://localhost:${PORT}`));
 }

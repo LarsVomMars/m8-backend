@@ -11,7 +11,7 @@ export function authMiddleware(permission: ApiPermissions) {
             const [headerKey, headerValue] = req.headers.authorization.split(" ");
             if (headerKey !== "Bearer")
                 return res.status(400).json({ success: false, message: "Bad Request" });
-            const key = await ApiKeysModel.findOne({key: headerValue}).exec();
+            const key = await ApiKeysModel.findOne({ key: headerValue }).exec();
             if (!key || key.permission < permission)
                 return res.status(401).json({ success: false, message: "Unauthorized" });
             req.apiKey = key;
