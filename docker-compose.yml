@@ -1,0 +1,18 @@
+version: '3.1'
+
+services:
+  mongo:
+    image: mongo:latest
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+
+  backend:
+    image: m8b:latest
+    restart: always
+    ports:
+      - 5550:5550
+    environment:
+      PORT: 5550
+      MONGO_URL: mongodb://root:example@mongo:27017/
