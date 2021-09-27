@@ -4,11 +4,13 @@ import { Permissions } from "./api/user";
 const URI = process.env.MONGO_URL || "mongodb://localhost:27017/mate";
 
 export async function init() {
-    await connect(URI, {
+    await connect(
+        URI /*, {
         useNewUrlParser: true,
         useUnifiedTopology: true,
         useFindAndModify: true,
-    });
+    }*/
+    );
 }
 
 export interface UserCollection {
@@ -49,7 +51,7 @@ const userSchema = new Schema<UserCollection>({
     qr: { type: String, required: true },
     pin: { type: String, required: true, match: /\d{4}/ },
     balance: { type: Number, required: true, min: 0 },
-    permission: { type: Permissions, required: true },
+    permission: { type: Number, enum: Permissions, required: true },
 });
 
 const productSchema = new Schema<ProductCollection>({
@@ -57,13 +59,13 @@ const productSchema = new Schema<ProductCollection>({
     price: { type: Number, required: true, min: 0 },
     amount: { type: Number, required: true, min: 0 },
     bottles_per_crate: { type: Number, required: true, min: 0 },
-    permission: { type: Permissions, required: true },
+    permission: { type: Number, enum: Permissions, required: true },
 });
 
 const apiKeysSchema = new Schema<ApiKeysCollection>({
     name: { type: String, required: true },
     key: { type: String, required: true },
-    permission: { type: ApiPermissions, required: true },
+    permission: { type: Number, enum: Permissions, required: true },
 });
 
 export const UserModel = model<UserCollection>("User", userSchema);
