@@ -10,7 +10,6 @@ RUN yarn build
 FROM node:16-alpine AS host
 RUN apk add --no-cache yarn
 ENV NODE_ENV=production
-# ENV PORT=5550
 WORKDIR /usr/src/app
 COPY package.json ./
 COPY yarn.lock ./

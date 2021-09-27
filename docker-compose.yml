@@ -1,4 +1,4 @@
-version: '3.1'
+version: "3.8"
 
 services:
   mongo:
@@ -9,8 +9,10 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: example
 
   backend:
-    image: m8b:latest
+    build: .
     restart: always
+    depends_on:
+      - mongo
     ports:
       - 5550:5550
     environment:
