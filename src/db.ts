@@ -7,6 +7,7 @@ export async function init() {
     await connect(URI, {
         useNewUrlParser: true,
         useUnifiedTopology: true,
+        useFindAndModify: true,
     });
 }
 

@@ -4,8 +4,12 @@ import { UserModel, ProductModel } from "../db";
 
 const transaction = Router();
 
+export function createUser(qr: string, pin: string, balance: number) {
+
+}
+
 transaction.post("/buy", async (req, res) => {
-    // TODO: Create users first
+    // TODO: Create users/deposit first
     const { pid, user_qr, user_pin, admin_qr, admin_pin, amount } = req.body;
     if (!pid || !user_qr || !user_pin || !admin_qr || !admin_pin || !amount)
         return res.status(400).json({ success: false, error: "Bad request" });
@@ -37,6 +41,7 @@ transaction.post("/buy", async (req, res) => {
 });
 
 transaction.put("/deposit", async (req, res) => {
+    // TODO: Create users first
     const { user_qr, user_pin, admin_qr, admin_pin, balance } = req.body;
     if (!user_qr || !user_pin || !admin_qr || !admin_pin || !balance || balance < 0)
         return res.status(400).json({ success: false, error: "Bad request" });
