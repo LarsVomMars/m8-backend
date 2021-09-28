@@ -45,24 +45,23 @@ const user = Router();
  *         description: Wrong authentication
  */
 user.post("/", async (req, res) => {
-    const { qr, pin, balance, permission, admin_qr, admin_pin } = req.body;
+    const { userQR, userPin, balance, permission, adminQR, adminPin } = req.body;
     if (
-        !qr ||
-        !pin ||
+        !userQR ||
+        !userPin ||
         balance === undefined ||
-        balance < 0 ||
         permission === undefined ||
         !Object.values(Permissions).includes(permission) ||
-        !admin_qr ||
-        !admin_pin
+        !adminQR ||
+        !adminPin
     )
         return res.status(400).json({ success: false, error: "Bad request" });
     try {
-        const admin = await UserModel.findOne({ qr: admin_qr, pin: admin_pin }).exec();
+        const admin = await UserModel.findOne({ qr: adminQR, pin: adminPin }).exec();
         if (!admin || admin.permission === 0)
             return res.status(401).json({ success: false, error: "Unauthorized" });
 
-        const user = new UserModel({ qr, pin, balance, permission });
+        const user = new UserModel({ qr: userQR, pin: userPin, balance, permission });
         user.save();
         return res.json({ success: true });
     } catch (e) {
@@ -105,6 +104,7 @@ user.get("/:qr", async (req, res) => {
     if (!qr) return res.status(400).json({ success: false, error: "Bad request" });
     try {
         const user = await UserModel.findOne({ qr }).exec();
+        console.log(user);
         if (!user) return res.status(400).json({ success: false, error: "Bad request" });
         return res.json({ success: true, balance: user.balance });
     } catch (e) {

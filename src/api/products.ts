@@ -147,8 +147,9 @@ products.post("/", async (req, res) => {
  *         description: Success
  */
 products.put("/", async (req, res) => {
-    const { id, name, price, amount, bottles_per_crate, permission } = req.body;
+    const { _id, name, price, amount, bottles_per_crate, permission } = req.body;
     if (
+        !_id ||
         !name ||
         price === null ||
         amount === null ||
@@ -158,7 +159,7 @@ products.put("/", async (req, res) => {
     )
         return res.status(400).json({ succes: false, error: "Bad Request" });
     try {
-        await ProductModel.findByIdAndUpdate(id, {
+        await ProductModel.findByIdAndUpdate(_id, {
             name,
             price,
             amount,
