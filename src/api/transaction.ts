@@ -4,20 +4,18 @@ import { UserModel, ProductModel } from "../db";
 
 const transaction = Router();
 
-export function createUser(qr: string, pin: string, balance: number) {
-
-}
+export function createUser(qr: string, pin: string, balance: number) {}
 
 transaction.post("/buy", async (req, res) => {
     // TODO: Create users/deposit first
-    const { pid, user_qr, user_pin, admin_qr, admin_pin, amount } = req.body;
-    if (!pid || !user_qr || !user_pin || !admin_qr || !admin_pin || !amount)
+    const { pid, userQR, userPin, adminQR, adminPin, amount = 1 } = req.body;
+    if (!pid || !userQR || !userPin || !adminQR || !adminPin || !amount)
         return res.status(400).json({ success: false, error: "Bad request" });
 
     try {
         const product = await ProductModel.findById(pid).exec();
-        const user = await UserModel.findOne({ qr: user_qr, pin: user_pin }).exec();
-        const admin = await UserModel.findOne({ qr: admin_qr, pin: admin_pin }).exec();
+        const user = await UserModel.findOne({ qr: userQR, pin: userPin }).exec();
+        const admin = await UserModel.findOne({ qr: adminQR, pin: adminPin }).exec();
 
         if (!product || !user || !admin)
             return res.status(400).json({ success: false, error: "Bad request" });
@@ -42,13 +40,13 @@ transaction.post("/buy", async (req, res) => {
 
 transaction.put("/deposit", async (req, res) => {
     // TODO: Create users first
-    const { user_qr, user_pin, admin_qr, admin_pin, balance } = req.body;
-    if (!user_qr || !user_pin || !admin_qr || !admin_pin || !balance || balance < 0)
+    const { userQR, userPin, adminQR, adminPin, balance } = req.body;
+    if (!userQR || !userPin || !adminQR || !adminPin || !balance || balance < 0)
         return res.status(400).json({ success: false, error: "Bad request" });
 
     try {
-        const user = await UserModel.findOne({ qr: user_qr, pin: user_pin }).exec();
-        const admin = await UserModel.findOne({ qr: admin_qr, pin: admin_pin }).exec();
+        const user = await UserModel.findOne({ qr: userQR, pin: userPin }).exec();
+        const admin = await UserModel.findOne({ qr: adminQR, pin: adminPin }).exec();
 
         if (!user || !admin)
             return res.status(401).json({ success: false, error: "Unauthorized" });
@@ -63,14 +61,13 @@ transaction.put("/deposit", async (req, res) => {
 });
 
 transaction.put("/clear", async (req, res) => {
-    const { user_qr, user_pin, admin_qr, admin_pin } = req.body;
-    if (!user_qr || !user_pin || !admin_qr || !admin_pin)
+    const { userQR, userPin, adminQR, adminPin } = req.body;
+    if (!userQR || !userPin || !adminQR || !adminPin)
         return res.status(400).json({ success: false, error: "Bad request" });
 
-    let client;
     try {
-        const user = await UserModel.findOne({ qr: user_qr, pin: user_pin }).exec();
-        const admin = await UserModel.findOne({ qr: admin_qr, pin: admin_pin }).exec();
+        const user = await UserModel.findOne({ qr: userQR, pin: userPin }).exec();
+        const admin = await UserModel.findOne({ qr: adminQR, pin: adminPin }).exec();
 
         if (!user || !admin)
             return res.status(401).json({ success: false, error: "Unauthorized" });

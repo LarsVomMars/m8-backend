@@ -53,7 +53,8 @@ user.post("/", async (req, res) => {
         permission === undefined ||
         !Object.values(Permissions).includes(permission) ||
         !adminQR ||
-        !adminPin
+        !adminPin ||
+        !/\d{4}/.test(userPin)
     )
         return res.status(400).json({ success: false, error: "Bad request" });
     try {

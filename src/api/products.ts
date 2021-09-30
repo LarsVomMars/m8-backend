@@ -115,8 +115,10 @@ products.post("/", async (req, res) => {
             bottles_per_crate,
             permission,
         });
-        product.save();
-        res.json({ success: true });
+        await product.save();
+
+        const products = await ProductModel.find().exec();
+        res.json({ success: true, products });
     } catch (e) {
         console.error(e);
         res.status(500).json({ success: false });
@@ -166,7 +168,8 @@ products.put("/", async (req, res) => {
             bottles_per_crate,
             permission,
         });
-        res.json({ success: true });
+        const products = await ProductModel.find().exec();
+        res.json({ success: true, products });
     } catch (e) {
         console.error(e);
         res.status(500).json({ success: false });
@@ -175,7 +178,7 @@ products.put("/", async (req, res) => {
 
 /**
  * @swagger
- * /products/:
+ * /products/{id}:
  *   delete:
  *     description: Delete a new product
  *     tags:
@@ -187,24 +190,21 @@ products.put("/", async (req, res) => {
  *     security:
  *     - APIKeyHeader: []
  *     parameters:
- *       - in: body
- *         name: product
+ *       - in: path
+ *         name: product id
+ *         type: string
  *         description: Product id
- *         schema:
- *           type: object
- *           properties:
- *             id:
- *               type: string
  *     responses:
  *       "200":
  *         description: Success
  */
-products.delete("/", async (req, res) => {
-    const { id } = req.body;
+products.delete("/:id", async (req, res) => {
+    const { id } = req.params;
     if (!id) return res.status(400).json({ success: false, error: "Bad Request" });
     try {
         await ProductModel.findByIdAndDelete(id);
-        res.json({ success: true });
+        const products = await ProductModel.find().exec();
+        res.json({ success: true, products });
     } catch (e) {
         console.error(e);
         res.status(500).json({ success: false });
