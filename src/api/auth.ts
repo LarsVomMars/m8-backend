@@ -6,41 +6,43 @@ const auth = Router();
 
 auth.get("/", async (req, res) => {
     if ((await ApiKeysModel.count()) !== 0)
-        return res.status(410).json({ success: false, error: "Gone" });
+        return res.status(410).json({ success: false, message: "Gone" });
 
     try {
-        const key = await addApiKey("AdminKey", ApiPermissions.ADMIN);
-        res.json({ success: true, ...key });
+        const name = "AdminKey";
+        const permission = ApiPermissions.ADMIN;
+        const key = await addApiKey(name, permission);
+        res.json({ success: true, key, name, permission });
     } catch (e) {
         console.error(e);
-        res.status(500).json({ success: false, error: "Welp!" });
+        res.status(500).json({ success: false, message: "Welp!" });
     }
 });
 
 auth.post("/", authMiddleware(ApiPermissions.ADMIN), async (req, res) => {
     const { name, permission } = req.body;
     if (!name || !permission)
-        return res.status(400).json({ success: false, error: "Bad request" });
+        return res.status(400).json({ success: false, message: "Bad request" });
 
     try {
         const key = await addApiKey(name, permission);
-        res.json({ success: true, ...key });
+        res.json({ success: true, key, name, permission });
     } catch (e) {
         console.error(e);
-        res.status(500).json({ success: false, error: "Welp!" });
+        res.status(500).json({ success: false, message: "Welp!" });
     }
 });
 
 auth.delete("/", authMiddleware(ApiPermissions.ADMIN), async (req, res) => {
     const { key, name } = req.body;
-    if (!key || !name) return res.status(400).json({ success: false, error: "Bad request" });
+    if (!key || !name) return res.status(400).json({ success: false, message: "Bad request" });
 
     try {
         await ApiKeysModel.deleteOne({ key, name });
         res.json({ success: true });
     } catch (e) {
         console.error(e);
-        res.status(500).json({ success: false, error: "Welp!" });
+        res.status(500).json({ success: false, message: "Welp!" });
     }
 });
 

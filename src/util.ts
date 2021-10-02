@@ -10,7 +10,7 @@ export function authMiddleware(permission: ApiPermissions) {
     return async (req: Request, res: Response, next: NextFunction) => {
         if (req.headers.authorization) {
             const [headerKey, headerValue] = req.headers.authorization.split(" ");
-            if (headerKey !== "Bearer")
+            if (headerKey !== "Bearer") // TODO: Unauthorized?
                 return res.status(400).json({ success: false, message: "Bad Request" });
             const key = await ApiKeysModel.findOne({ key: headerValue }).exec();
             if (!key || key.permission < permission)
@@ -57,9 +57,9 @@ export function initSwaggerDoc(app: Application) {
     app.use("/doc", ui.serve, ui.setup(spec, { explorer: true }));
 }
 
-export async function addApiKey(name: string, permission: ApiPermissions): Promise<ApiKeysCollection> {
+export async function addApiKey(name: string, permission: ApiPermissions): Promise<string> {
     const key = randomBytes(32).toString("hex");
     const apikey = new ApiKeysModel({ key, name, permission });
     await apikey.save();
-    return apikey;
+    return key;
 }

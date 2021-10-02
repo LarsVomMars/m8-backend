@@ -1,12 +1,11 @@
 import { Router } from "express";
-import { ObjectId } from "mongodb";
 import { UserModel, ProductModel } from "../db";
+import { authMiddleware } from "../util";
+import { ApiPermissions } from "../db";
 
 const transaction = Router();
 
-export function createUser(qr: string, pin: string, balance: number) {}
-
-transaction.post("/buy", async (req, res) => {
+transaction.post("/buy", authMiddleware(ApiPermissions.WRITE), async (req, res) => {
     // TODO: Create users/deposit first
     const { pid, userQR, userPin, adminQR, adminPin, amount = 1 } = req.body;
     if (!pid || !userQR || !userPin || !adminQR || !adminPin || !amount)
@@ -38,7 +37,7 @@ transaction.post("/buy", async (req, res) => {
     }
 });
 
-transaction.put("/deposit", async (req, res) => {
+transaction.put("/deposit", authMiddleware(ApiPermissions.WRITE), async (req, res) => {
     // TODO: Create users first
     const { userQR, userPin, adminQR, adminPin, balance } = req.body;
     if (!userQR || !userPin || !adminQR || !adminPin || !balance || balance < 0)
@@ -60,7 +59,7 @@ transaction.put("/deposit", async (req, res) => {
     }
 });
 
-transaction.put("/clear", async (req, res) => {
+transaction.put("/clear", authMiddleware(ApiPermissions.WRITE), async (req, res) => {
     const { userQR, userPin, adminQR, adminPin } = req.body;
     if (!userQR || !userPin || !adminQR || !adminPin)
         return res.status(400).json({ success: false, error: "Bad request" });
