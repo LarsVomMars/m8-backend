@@ -2,7 +2,8 @@ import type { Request, Response, NextFunction, Application } from "express";
 
 import jsdoc from "swagger-jsdoc";
 import ui from "swagger-ui-express";
-import { ApiKeysModel } from "./db";
+import { randomBytes } from "crypto";
+import { ApiKeysCollection, ApiKeysModel } from "./db";
 import type { ApiPermissions } from "./db";
 
 export function authMiddleware(permission: ApiPermissions) {
@@ -54,4 +55,11 @@ export function initSwaggerDoc(app: Application) {
     const spec = jsdoc(options);
     app.get("/", (req, res) => res.redirect("/doc"));
     app.use("/doc", ui.serve, ui.setup(spec, { explorer: true }));
+}
+
+export async function addApiKey(name: string, permission: ApiPermissions): Promise<ApiKeysCollection> {
+    const key = randomBytes(32).toString("hex");
+    const apikey = new ApiKeysModel({ key, name, permission });
+    await apikey.save();
+    return apikey;
 }
