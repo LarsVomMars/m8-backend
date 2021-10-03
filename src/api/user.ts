@@ -110,7 +110,6 @@ user.get("/:qr", authMiddleware(ApiPermissions.READ), async (req, res) => {
     if (!qr) return res.status(400).json({ success: false, error: "Bad request" });
     try {
         const user = await UserModel.findOne({ qr }).exec();
-        console.log(user);
         if (!user) return res.status(400).json({ success: false, error: "Bad request" });
         return res.json({ success: true, balance: user.balance });
     } catch (e) {

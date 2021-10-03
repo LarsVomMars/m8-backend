@@ -21,7 +21,7 @@ auth.get("/", async (req, res) => {
 
 auth.post("/", authMiddleware(ApiPermissions.ADMIN), async (req, res) => {
     const { name, permission } = req.body;
-    if (!name || !permission)
+    if (!name || permission === undefined)
         return res.status(400).json({ success: false, message: "Bad request" });
 
     try {

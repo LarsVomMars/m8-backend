@@ -150,15 +150,7 @@ products.post("/", authMiddleware(ApiPermissions.WRITE), async (req, res) => {
  */
 products.put("/", authMiddleware(ApiPermissions.WRITE), async (req, res) => {
     const { _id, name, price, amount, bottles_per_crate, permission } = req.body;
-    if (
-        !_id ||
-        !name ||
-        price === null ||
-        amount === null ||
-        bottles_per_crate === null ||
-        permission === null ||
-        !Object.values(Permissions).includes(permission)
-    )
+    if (!_id || (permission !== undefined && !Object.values(Permissions).includes(permission)))
         return res.status(400).json({ succes: false, error: "Bad Request" });
     try {
         await ProductModel.findByIdAndUpdate(_id, {

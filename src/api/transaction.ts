@@ -8,7 +8,7 @@ const transaction = Router();
 transaction.post("/buy", authMiddleware(ApiPermissions.WRITE), async (req, res) => {
     // TODO: Create users/deposit first
     const { pid, userQR, userPin, adminQR, adminPin, amount = 1 } = req.body;
-    if (!pid || !userQR || !userPin || !adminQR || !adminPin || !amount)
+    if (!pid || !userQR || !userPin || !adminQR || !adminPin || !amount || amount < 0)
         return res.status(400).json({ success: false, error: "Bad request" });
 
     try {
@@ -40,7 +40,7 @@ transaction.post("/buy", authMiddleware(ApiPermissions.WRITE), async (req, res) 
 transaction.put("/deposit", authMiddleware(ApiPermissions.WRITE), async (req, res) => {
     // TODO: Create users first
     const { userQR, userPin, adminQR, adminPin, balance } = req.body;
-    if (!userQR || !userPin || !adminQR || !adminPin || !balance || balance < 0)
+    if (!userQR || !userPin || !adminQR || !adminPin || balance === undefined || balance < 0)
         return res.status(400).json({ success: false, error: "Bad request" });
 
     try {
