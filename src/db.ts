@@ -4,13 +4,7 @@ import { Permissions } from "./api/user";
 const URI = process.env.MONGO_URL || "mongodb://localhost:27017/mate";
 
 export async function init() {
-    await connect(
-        URI /*, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-        useFindAndModify: true,
-    }*/
-    );
+    await connect(URI);
 }
 
 export interface UserCollection {
@@ -28,7 +22,8 @@ export interface ProductCollection {
     permission: Permissions;
 }
 
-export enum ApiPermissions {
+// Const?
+export const enum ApiPermissions {
     READ,
     WRITE,
     ADMIN,

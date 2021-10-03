@@ -6,13 +6,11 @@ dotenvConfig();
 import express from "express";
 import api from "./api";
 import auth from "./api/auth";
-import { Server } from "http";
 
 import cors from "cors";
 
 const PORT = process.env.PORT || 5550;
 const app = express();
-let server: Server;
 
 async function main() {
     await initDB();
@@ -22,11 +20,10 @@ async function main() {
     app.use(cors());
 
     util.initSwaggerDoc(app);
-    // app.use("/api", util.authMiddleware(keys), api);
     app.use("/api", api);
     app.use("/auth", auth);
 
-    server = app.listen(PORT, () => console.log(`Server started at http://localhost:${PORT}`));
+    app.listen(PORT, () => console.log(`Server started at http://localhost:${PORT}`));
 }
 
 main().catch(console.error);

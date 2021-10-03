@@ -1,7 +1,12 @@
 import { Router } from "express";
-import { UserModel } from "../db";
+import { ApiPermissions, UserModel } from "../db";
+import { authMiddleware } from "../util";
 
 const user = Router();
+
+// (() => {
+//     console.log(ApiPermissions);
+// })();
 
 /**
  * @swagger
@@ -44,7 +49,7 @@ const user = Router();
  *       "401":
  *         description: Wrong authentication
  */
-user.post("/", async (req, res) => {
+user.post("/", authMiddleware(ApiPermissions.WRITE), async (req, res) => {
     const { userQR, userPin, balance, permission, adminQR, adminPin } = req.body;
     if (
         !userQR ||
@@ -100,12 +105,11 @@ user.post("/", async (req, res) => {
  *               type: number
  *               format: float
  */
-user.get("/:qr", async (req, res) => {
+user.get("/:qr", authMiddleware(ApiPermissions.READ), async (req, res) => {
     const { qr } = req.params;
     if (!qr) return res.status(400).json({ success: false, error: "Bad request" });
     try {
         const user = await UserModel.findOne({ qr }).exec();
-        console.log(user);
         if (!user) return res.status(400).json({ success: false, error: "Bad request" });
         return res.json({ success: true, balance: user.balance });
     } catch (e) {

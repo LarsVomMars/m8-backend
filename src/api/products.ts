@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { ObjectId } from "mongodb";
-import { ProductModel } from "../db";
+import { ApiPermissions, ProductModel } from "../db";
+import { authMiddleware } from "../util";
 import { Permissions } from "./user";
 
 const products = Router();
@@ -67,7 +67,7 @@ const products = Router();
  *               items:
  *                 $ref: "#/definitions/IProduct"
  */
-products.get("/", async (_req, res) => {
+products.get("/", authMiddleware(ApiPermissions.READ), async (_req, res) => {
     const products = await ProductModel.find().exec();
     res.json({ succes: true, products });
 });
@@ -95,7 +95,7 @@ products.get("/", async (_req, res) => {
  *       "200":
  *         description: Success
  */
-products.post("/", async (req, res) => {
+products.post("/", authMiddleware(ApiPermissions.WRITE), async (req, res) => {
     const { name, price, amount, bottles_per_crate, permission } = req.body;
     if (
         !name ||
@@ -148,17 +148,9 @@ products.post("/", async (req, res) => {
  *       "200":
  *         description: Success
  */
-products.put("/", async (req, res) => {
+products.put("/", authMiddleware(ApiPermissions.WRITE), async (req, res) => {
     const { _id, name, price, amount, bottles_per_crate, permission } = req.body;
-    if (
-        !_id ||
-        !name ||
-        price === null ||
-        amount === null ||
-        bottles_per_crate === null ||
-        permission === null ||
-        !Object.values(Permissions).includes(permission)
-    )
+    if (!_id || (permission !== undefined && !Object.values(Permissions).includes(permission)))
         return res.status(400).json({ succes: false, error: "Bad Request" });
     try {
         await ProductModel.findByIdAndUpdate(_id, {
@@ -198,7 +190,7 @@ products.put("/", async (req, res) => {
  *       "200":
  *         description: Success
  */
-products.delete("/:id", async (req, res) => {
+products.delete("/:id", authMiddleware(ApiPermissions.WRITE), async (req, res) => {
     const { id } = req.params;
     if (!id) return res.status(400).json({ success: false, error: "Bad Request" });
     try {
